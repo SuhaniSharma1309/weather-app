@@ -31,14 +31,15 @@ async function searchWeather() {
     document.getElementById('error').style.display = 'none';
 
     try {
-        // 👇 Secure backend call instead of using API key on frontend
+        // backend call via Netlify function
         const response = await fetch(`/.netlify/functions/weather?city=${city}`);
-
-        if (!response.ok) {
-            throw new Error('City not found');
-        }
-
         const data = await response.json();
+
+        // 👇 New fix — show error without crashing
+        if (data.error) {
+            showMessage(data.error, 'error');
+            return;
+        }
 
         displayWeather(data.current, data.forecast);
 
@@ -50,7 +51,6 @@ async function searchWeather() {
 }
 
 function displayWeather(current, forecast) {
-    // Display current weather
     document.getElementById('location').textContent = `${current.name}, ${current.sys.country}`;
     document.getElementById('weatherIcon').textContent = getWeatherEmoji(current.weather[0].main);
     document.getElementById('temperature').textContent = `${Math.round(current.main.temp)}°C`;
@@ -60,7 +60,6 @@ function displayWeather(current, forecast) {
     document.getElementById('windSpeed').textContent = `${current.wind.speed} m/s`;
     document.getElementById('pressure').textContent = `${current.main.pressure} hPa`;
 
-    // Display forecast
     const forecastContainer = document.getElementById('forecast');
     forecastContainer.innerHTML = '';
 
